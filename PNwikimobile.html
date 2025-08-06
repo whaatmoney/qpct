@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QPC PNwiki</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --card-bg: #fff;
+      --text-color: #222;
+      --subtext-color: #666;
+      --input-bg: #fff;
+      --border: #ccc;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121212;
+        --card-bg: #1f1f1f;
+        --text-color: #f0f0f0;
+        --subtext-color: #aaa;
+        --input-bg: #2a2a2a;
+        --border: #444;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 32px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    p.description {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: var(--subtext-color);
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text-color);
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0078D4;
+      box-shadow: 0 0 0 2px rgba(0,120,212,0.2);
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 12px;
+      width: 100%;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    @media (max-height: 500px) {
+      .container {
+        box-shadow: none;
+        border-radius: 0;
+        height: 100vh;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>QPC PNwiki</h1>
+    <p class="description">Quickly route inspection, NCR, or packaging searches by part number.</p>
+
+    <label for="destination">Choose Department:</label>
+    <select id="destination">
+      <option value="inspection">Inspection</option>
+      <option value="ncr">NCR</option>
+      <option value="packaging">Packaging Inspection</option>
+    </select>
+
+    <label for="newNumber">Enter Part Number:</label>
+    <input type="text" id="newNumber" placeholder="e.g. 000-158-9514-001" />
+
+    <button id="searchBtn">Search</button>
+  </div>
+
+  <script>
+    const input = document.getElementById("newNumber");
+    const dropdown = document.getElementById("destination");
+    const button = document.getElementById("searchBtn");
+
+    const urls = {
+      "inspection": 'https://engage.cloud.microsoft/main/search?search=%22000-158-9514-001%22&type=threads&groupScope=eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNDk5OTE4OCJ9',
+      "ncr": 'https://engage.cloud.microsoft/main/search?search=%22000-158-9514-001%22&type=threads&groupScope=eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNDgyNDg3OCJ9',
+      "packaging": 'https://engage.cloud.microsoft/main/search?search=%22000-158-9514-001%22&type=threads&groupScope=eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNTQxNDA4NCJ9'
+    };
+
+    function launchSearch() {
+      const partNumber = input.value.trim();
+      if (partNumber !== "") {
+        const selection = dropdown.value;
+        const baseUrl = urls[selection];
+        const encodedPart = encodeURIComponent(`"${partNumber}"`);
+        const finalUrl = baseUrl.replace(/search=%22[^%]*%22/, `search=${encodedPart}`);
+        window.open(finalUrl, "_blank");
+      }
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        launchSearch();
+      }
+    });
+
+    button.addEventListener("click", launchSearch);
+  </script>
+
+</body>
+</html>
