@@ -74,7 +74,7 @@
       text-align: left;
     }
 
-    select, input {
+    select, input[type="text"] {
       width: 100%;
       padding: 10px;
       font-size: 15px;
@@ -85,7 +85,7 @@
       margin-bottom: 10px;
     }
 
-    input:focus, select:focus {
+    select:focus, input[type="text"]:focus {
       outline: none;
       border-color: #0078D4;
       box-shadow: 0 0 0 2px rgba(0,120,212,0.2);
@@ -108,6 +108,105 @@
       background-color: #005fa3;
     }
 
+    /* Exact-match option */
+    .options {
+      display: flex;
+      align-items: center;
+      margin: 2px 0 6px;
+      text-align: left;
+    }
+
+    .options label.checkbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 400;
+      margin: 0;
+      color: var(--subtext-color);
+      cursor: pointer;
+    }
+
+    .options input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    /* Recent searches */
+    .recent {
+      margin-top: 26px;
+      text-align: left;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .recent-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .recent-head .recent-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--subtext-color);
+    }
+
+    .linkbtn {
+      width: auto;
+      margin: 0;
+      padding: 0;
+      background: none;
+      border: none;
+      color: var(--subtext-color);
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .linkbtn:hover { background: none; color: var(--text-color); }
+
+    #recentList { list-style: none; margin: 0; padding: 0; }
+    #recentList li { margin-bottom: 6px; }
+
+    .recent-item {
+      width: 100%;
+      margin: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .recent-item:hover { border-color: #0078D4; }
+
+    .recent-item .terms {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .recent-item .badge {
+      flex: 0 0 auto;
+      font-size: 11px;
+      color: var(--subtext-color);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+
     @media (max-height: 500px) {
       .container {
         box-shadow: none;
@@ -122,53 +221,203 @@
 
   <div class="container">
     <h1>PNwiki</h1>
-    <p class="description">Quickly route inspection, NCR, or packaging searches by part number.</p>
+    <p class="description">Search inspection, NCR, or packaging by part number, work order, or both.</p>
 
-    <label for="destination">Choose Department:</label>
-    <select id="destination">
-      <option value="inspection">Inspection</option>
-      <option value="ncr">NCR</option>
-      <option value="packaging">Packaging Inspection</option>
-    </select>
+    <label for="department">Choose Department:</label>
+    <select id="department"></select>
 
-    <label for="newNumber">Enter Part Number:</label>
-    <input type="text" id="newNumber" placeholder="e.g. 000-158-9514-001" />
+    <label for="partNumber">Part Number:</label>
+    <input type="text" id="partNumber" placeholder="e.g. 000-158-9514-001" autocomplete="off" />
+
+    <label for="workOrder">Work Order #:</label>
+    <input type="text" id="workOrder" placeholder="e.g. 48217" autocomplete="off" />
+
+    <div class="options">
+      <label class="checkbox" title="On: searches each term as an exact phrase (quoted). Off: looser match that catches spacing and format variations.">
+        <input type="checkbox" id="exactMatch" checked />
+        Exact match (recommended)
+      </label>
+    </div>
 
     <button id="searchBtn">Search</button>
+
+    <div id="recentWrap" class="recent" hidden>
+      <div class="recent-head">
+        <span class="recent-title">Recent</span>
+        <button type="button" id="clearRecent" class="linkbtn">Clear</button>
+      </div>
+      <ul id="recentList"></ul>
+    </div>
   </div>
 
   <script>
-    const input = document.getElementById("newNumber");
-    const dropdown = document.getElementById("destination");
-    const button = document.getElementById("searchBtn");
+    /* ---------------------------------------------------------------
+       To add or change a department, edit ONLY this list.
+       groupId is the Viva Engage group's numeric id.
+    --------------------------------------------------------------- */
+    const DEPARTMENTS = [
+      { key: "all",        label: "All groups",            groupId: null },
+      { key: "inspection", label: "Inspection",           groupId: "14999188" },
+      { key: "ncr",        label: "NCR",                   groupId: "14824878" },
+      { key: "packaging",  label: "Packaging Inspection",  groupId: "15414084" }
+    ];
 
-    const urls = {
-      "inspection": 'https://engage.cloud.microsoft/main/search?search=%22000-158-9514-001%22&type=threads&groupScope=eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNDk5OTE4OCJ9',
-      "ncr": 'https://engage.cloud.microsoft/main/search?search=%22000-158-9514-001%22&type=threads&groupScope=eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNDgyNDg3OCJ9',
-      "packaging": 'https://engage.cloud.microsoft/main/search?search=%22000-158-9514-001%22&type=threads&groupScope=eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIxNTQxNDA4NCJ9'
-    };
+    const SEARCH_BASE   = "https://engage.cloud.microsoft/main/search";
+    const RECENT_KEY    = "pnwiki:recent";
+    const LAST_DEPT_KEY = "pnwiki:lastDept";
+    const MAX_RECENT    = 10;
 
-    function launchSearch() {
-      const partNumber = input.value.trim();
-      if (partNumber !== "") {
-        const selection = dropdown.value;
-        const baseUrl = urls[selection];
-        const encodedPart = encodeURIComponent(`"${partNumber}"`);
-        const finalUrl = baseUrl.replace(/search=%22[^%]*%22/, `search=${encodedPart}`);
-        window.open(finalUrl, "_blank");
-      }
+    const dropdown   = document.getElementById("department");
+    const input      = document.getElementById("partNumber");
+    const woInput    = document.getElementById("workOrder");
+    const exactBox   = document.getElementById("exactMatch");
+    const button     = document.getElementById("searchBtn");
+    const recentWrap = document.getElementById("recentWrap");
+    const recentList = document.getElementById("recentList");
+    const clearBtn   = document.getElementById("clearRecent");
+
+    /* ---- localStorage helpers (degrade quietly if unavailable) ---- */
+    function storageGet(key) {
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    function storageSet(key, val) {
+      try { localStorage.setItem(key, val); } catch (e) { /* no-op */ }
+    }
+    function getRecent() {
+      try {
+        const raw = storageGet(RECENT_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) { return []; }
+    }
+    function saveRecent(arr) {
+      storageSet(RECENT_KEY, JSON.stringify(arr));
     }
 
-    input.addEventListener("keydown", (e) => {
+    function deptByKey(key) {
+      return DEPARTMENTS.find(d => d.key === key) || null;
+    }
+    function deptLabel(key) {
+      const d = deptByKey(key);
+      return d ? d.label : key;
+    }
+
+    /* ---- URL building (assembled from parts, not string-swapped) ----
+       Searches whichever of part number / work order are filled,
+       within the selected department's Engage group. */
+    function buildUrl(deptKey, pn, wo, exact) {
+      const dept = deptByKey(deptKey);
+      if (!dept) return null;
+      const terms = [pn, wo].map(t => (t || "").trim()).filter(t => t !== "");
+      if (terms.length === 0) return null;
+      const search = terms.map(t => exact ? `"${t}"` : t).join(" ");
+      let url = SEARCH_BASE
+        + "?search=" + encodeURIComponent(search)
+        + "&type=threads";
+      // A department with a groupId scopes the search to that Engage group.
+      // "All groups" has no groupId, so groupScope is omitted (network-wide).
+      if (dept.groupId) {
+        const scope = btoa(JSON.stringify({ _type: "Group", id: dept.groupId }));
+        url += "&groupScope=" + encodeURIComponent(scope);
+      }
+      return url;
+    }
+
+    /* ---- core action ---- */
+    function launchSearch() {
+      const pn = input.value.trim();
+      const wo = woInput.value.trim();
+      if (pn === "" && wo === "") return;
+      const deptKey = dropdown.value;
+      const exact   = exactBox.checked;
+      const url = buildUrl(deptKey, pn, wo, exact);
+      if (!url) return;
+      storageSet(LAST_DEPT_KEY, deptKey);
+      addRecent(pn, wo, deptKey, exact);
+      window.open(url, "_blank", "noopener");
+    }
+
+    /* ---- recent searches ---- */
+    function addRecent(pn, wo, deptKey, exact) {
+      let recent = getRecent().filter(
+        r => !(r.pn === pn && r.wo === wo && r.dept === deptKey)
+      );
+      recent.unshift({ pn: pn, wo: wo, dept: deptKey, exact: exact });
+      recent = recent.slice(0, MAX_RECENT);
+      saveRecent(recent);
+      renderRecent();
+    }
+
+    function renderRecent() {
+      const recent = getRecent();
+      recentList.textContent = "";
+      if (recent.length === 0) {
+        recentWrap.hidden = true;
+        return;
+      }
+      recentWrap.hidden = false;
+
+      recent.forEach(r => {
+        const li = document.createElement("li");
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "recent-item";
+
+        const terms = document.createElement("span");
+        terms.className = "terms";
+        terms.textContent = [r.pn, r.wo].filter(Boolean).join("  \u00b7  ");
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = deptLabel(r.dept);
+
+        item.appendChild(terms);
+        item.appendChild(badge);
+        item.addEventListener("click", () => {
+          input.value   = r.pn || "";
+          woInput.value = r.wo || "";
+          if (deptByKey(r.dept)) dropdown.value = r.dept;
+          exactBox.checked = (r.exact !== false);
+          launchSearch();
+        });
+
+        li.appendChild(item);
+        recentList.appendChild(li);
+      });
+    }
+
+    /* ---- init ---- */
+    function buildOptions() {
+      DEPARTMENTS.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d.key;
+        opt.textContent = d.label;
+        dropdown.appendChild(opt);
+      });
+    }
+
+    buildOptions();
+
+    const lastDept = storageGet(LAST_DEPT_KEY);
+    if (lastDept && deptByKey(lastDept)) dropdown.value = lastDept;
+
+    renderRecent();
+    input.focus();
+
+    function onEnter(e) {
       if (e.key === "Enter") {
         e.preventDefault();
         launchSearch();
       }
-    });
-
+    }
+    input.addEventListener("keydown", onEnter);
+    woInput.addEventListener("keydown", onEnter);
     button.addEventListener("click", launchSearch);
+    clearBtn.addEventListener("click", () => {
+      saveRecent([]);
+      renderRecent();
+    });
   </script>
 
 </body>
 </html>
-
