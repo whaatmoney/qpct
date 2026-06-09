@@ -21,6 +21,7 @@
       --accent: #1366d6;
       --accent-strong: #0f51ab;
       --accent-soft: rgba(19,102,214,0.09);
+      --brand: #c9a249;
       --glow: rgba(19,102,214,0.07);
       --warn: #9a6700;
       --warn-bg: rgba(180,130,0,0.10);
@@ -45,6 +46,7 @@
         --accent: #4a9eff;
         --accent-strong: #7bb8ff;
         --accent-soft: rgba(74,158,255,0.13);
+        --brand: #c9a249;
         --glow: rgba(74,158,255,0.09);
         --warn: #e3b341;
         --warn-bg: rgba(227,179,65,0.10);
@@ -128,8 +130,8 @@
       top: 14px;
       bottom: 18px;
       width: 2px;
-      background: linear-gradient(var(--line), var(--line));
-      opacity: 0.9;
+      background: var(--brand);
+      opacity: 0.6;
     }
 
     .block { position: relative; margin-bottom: 34px; }
@@ -148,9 +150,9 @@
       font-family: var(--mono);
       font-size: 12px;
       font-weight: 600;
-      color: var(--accent);
+      color: var(--ink);
       background: var(--surface);
-      border: 2px solid var(--accent);
+      border: 2px solid var(--brand);
       border-radius: 8px;
       box-shadow: var(--shadow-sm);
     }
@@ -235,6 +237,8 @@
     button.go:hover { background: var(--accent-strong); }
     button.go:active { transform: translateY(1px); }
     button.go:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .search-note { margin: 9px 0 0; font-size: 12px; color: var(--muted); }
+    .search-note.warn { color: var(--warn); font-weight: 500; }
 
     /* recent */
     .recent { margin-top: 15px; }
@@ -343,24 +347,11 @@
   <div class="wrap">
 
     <header class="top reveal">
-      <svg class="mark" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-        <circle cx="18" cy="18" r="4.4" fill="currentColor"/>
-        <g stroke="currentColor" stroke-width="1.6" opacity="0.55">
-          <line x1="18" y1="18" x2="18" y2="5"/>
-          <line x1="18" y1="18" x2="30" y2="11.5"/>
-          <line x1="18" y1="18" x2="30" y2="24.5"/>
-          <line x1="18" y1="18" x2="18" y2="31"/>
-          <line x1="18" y1="18" x2="6" y2="24.5"/>
-          <line x1="18" y1="18" x2="6" y2="11.5"/>
-        </g>
-        <g fill="currentColor" opacity="0.92">
-          <circle cx="18" cy="5" r="2.5"/>
-          <circle cx="30" cy="11.5" r="2.5"/>
-          <circle cx="30" cy="24.5" r="2.5"/>
-          <circle cx="18" cy="31" r="2.5"/>
-          <circle cx="6" cy="24.5" r="2.5"/>
-          <circle cx="6" cy="11.5" r="2.5"/>
-        </g>
+      <svg class="mark" width="42" height="42" viewBox="0 0 229.79 230.24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QPC logo">
+        <path d="M228.3,105.05C223.2,47.02,174.48,1.5,115.12,1.5,52.37,1.5,1.5,52.37,1.5,115.12s50.87,113.62,113.62,113.62c59.31,0,108.01-45.45,113.17-103.42" fill="none" stroke="#c9a249" stroke-width="3" stroke-miterlimit="10"/>
+        <polyline points="85.61 150.21 74.4 150.21 68.66 144.17 37 144.25 24.9 132.57 24.9 97.86 36.58 86.27 71.37 86.27 82.38 97.61 82.63 131.89 79.67 135.45 74.08 129.88 75.1 129.02 75.02 100.81 67.87 93.58 39.73 93.58 32.5 100.96 32.66 129.41 39.97 136.88 61.35 136.88 53.17 127.49 63.84 127.49 85.79 150.21" fill="#c9a249" stroke="#c9a249" stroke-width=".5" stroke-miterlimit="10"/>
+        <polygon points="204.84 86.23 204.85 93.97 171.82 93.97 164.38 101.35 164.38 129.37 171.42 136.64 204.76 136.64 204.9 144.01 169.03 144.01 156.88 132.82 156.88 97.98 168.76 86.23 204.84 86.23" fill="#c9a249" stroke="#c9a249" stroke-width=".5" stroke-miterlimit="10"/>
+        <path d="M135.59,86.19h-42.48v57.86h7.51v-17.64h35.04l10.64-10.56v-18.97l-10.71-10.69ZM138.62,112.49l-5.98,6.52h-31.72v-25h31.78l5.92,5.72v12.77Z" fill="#c9a249" stroke="#c9a249" stroke-width=".5" stroke-miterlimit="10"/>
       </svg>
       <div class="title">
         <p class="eyebrow">QPC</p>
@@ -401,11 +392,12 @@
               </div>
             </div>
             <div class="controls">
-              <label class="checkbox" title="On: exact phrase. Off: looser match for spacing/format variants.">
+              <label class="checkbox">
                 <input type="checkbox" id="exactMatch" checked /> Exact match
               </label>
               <button class="go" id="searchBtn">Search</button>
             </div>
+            <p class="search-note" id="searchNote">On: exact phrase. Off: looser match for spacing or format variants.</p>
             <div class="recent" id="recentWrap" hidden>
               <div class="recent-head">
                 <span class="t">Recent</span>
@@ -447,12 +439,15 @@
         section: "Quality",
         blurb: "",
         items: [
-          { name: "Insights", cta: true, action: "Open the form",
-            desc: "Log what happens — good, bad, and ideas. It's how QPC sees what's really going on. Anyone can add.",
-            url: "https://forms.office.com/r/Jyga0TwbDm?origin=lprLink" },
-          { name: "Escalations", cta: true, action: "Open escalations",
-            desc: "See what's escalated and where it stands.",
-            url: "https://engage.cloud.microsoft/main/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIyNDc2MzQ2NDkwODgifQ/all" }
+          { name: "Insights",    desc: "How QPC sees what's really going on. Anyone can add.", url: "https://forms.office.com/r/Jyga0TwbDm?origin=lprLink" },
+          { name: "Escalations", desc: "See what's escalated and where it stands.", url: "https://engage.cloud.microsoft/main/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIyNDc2MzQ2NDkwODgifQ/all" }
+        ]
+      },
+      {
+        section: "Tools & Utilities",
+        blurb: "",
+        items: [
+          { name: "Part Number History", desc: "Full detail on any part number.", url: "https://whaatmoney.github.io/pricing/" }
         ]
       },
       {
@@ -486,6 +481,9 @@
     const recentWrap = document.getElementById("recentWrap");
     const recentList = document.getElementById("recentList");
     const clearBtn   = document.getElementById("clearRecent");
+    const searchNote = document.getElementById("searchNote");
+    const NOTE_DEFAULT = searchNote.textContent;
+    function resetNote(){ searchNote.textContent = NOTE_DEFAULT; searchNote.classList.remove("warn"); }
 
     function storageGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
     function storageSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
@@ -511,7 +509,13 @@
     function launchSearch(){
       const pn = input.value.trim();
       const wo = woInput.value.trim();
-      if (pn === "" && wo === "") return;
+      if (pn === "" && wo === "") {
+        searchNote.textContent = "Enter a part number or work order.";
+        searchNote.classList.add("warn");
+        input.focus();
+        return;
+      }
+      resetNote();
       const deptKey = dropdown.value;
       const exact = exactBox.checked;
       const url = buildUrl(deptKey, pn, wo, exact);
@@ -565,6 +569,8 @@
     function onEnter(e){ if (e.key === "Enter"){ e.preventDefault(); launchSearch(); } }
     input.addEventListener("keydown", onEnter);
     woInput.addEventListener("keydown", onEnter);
+    input.addEventListener("input", resetNote);
+    woInput.addEventListener("input", resetNote);
     button.addEventListener("click", launchSearch);
     clearBtn.addEventListener("click", () => { saveRecent([]); renderRecent(); });
 
