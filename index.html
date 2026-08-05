@@ -248,14 +248,21 @@
     .linkbtn:hover { color: var(--ink); }
     #recentList { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
     .chip {
-      display: inline-flex; align-items: center; gap: 9px;
+      display: inline-flex; align-items: center; gap: 8px;
       background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 999px; padding: 6px 13px; cursor: pointer;
+      border-radius: 999px; padding: 4px 13px 4px 4px; cursor: pointer;
       font-family: var(--mono); font-size: 13px; color: var(--ink);
       transition: border-color .14s ease;
     }
-    .chip:hover { border-color: var(--accent); }
-    .chip .badge { font-family: var(--sans); font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; }
+    .chip:hover { border-color: var(--brand); }
+    .chip .badge {
+      display: inline-grid; place-items: center; min-height: 18px; padding: 2px 9px;
+      background: rgba(201,163,77,.16); color: var(--muted); border-radius: 999px;
+      font-family: var(--sans); font-size: 9.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .05em; white-space: nowrap;
+      transition: background .14s ease, color .14s ease;
+    }
+    .chip:hover .badge { background: var(--brand); color: #1F2937; }
 
     /* ---------- Tool tiles ---------- */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); gap: 12px; }
@@ -549,7 +556,7 @@
         terms.textContent = [r.pn, r.wo].filter(Boolean).join("  \u00b7  ");
         const badge = document.createElement("span");
         badge.className = "badge"; badge.textContent = deptLabel(r.dept);
-        chip.appendChild(terms); chip.appendChild(badge);
+        chip.appendChild(badge); chip.appendChild(terms);
         chip.addEventListener("click", () => {
           input.value = r.pn || "";
           woInput.value = r.wo || "";
